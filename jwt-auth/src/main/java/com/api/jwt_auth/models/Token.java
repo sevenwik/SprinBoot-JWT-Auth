@@ -11,7 +11,8 @@ public class Token {
         this.token = token;
     }
 
-    public Token() {
-
+    public Token(String token) {
+        super();
+        this.token = token;
     }
 }
