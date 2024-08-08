@@ -25,7 +25,7 @@ public class AuthController {
         JSONObject jo = new JSONObject();
 
         jo.put("name", cust.getName());
-        jo.put("email", cust.getEmail());
+        jo.put("email", cust.getName());
         jo.put("password", cust.getPassword());
         jo.put("id", cust.getID());
 
