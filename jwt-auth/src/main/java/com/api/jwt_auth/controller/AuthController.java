@@ -20,9 +20,24 @@ import java.net.URL;
 @RequestMapping("/account")
 @CrossOrigin
 public class AuthController {
-    @GetMapping("/token")
-    public void getToken(@RequestBody String username, @RequestBody String password) {
+    @PostMapping("/token")
+    public ResponseEntity<Object> getToken(@RequestBody Customer cust) {
+        JSONObject jo = new JSONObject();
 
+        jo.put("name", cust.getName());
+        jo.put("email", cust.getEmail());
+        jo.put("password", cust.getPassword());
+        jo.put("id", cust.getID());
+
+        String out = jo.toString();
+
+        ResponseEntity<Object> output = null;
+        try {
+            output = checkCustomerInCustomerAPI(out);
+            return output;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @PostMapping("/register")
@@ -77,14 +92,45 @@ public class AuthController {
             return new ResponseEntity<>( HttpStatusCode.valueOf(statusCode));
         }
         return new ResponseEntity<>(HttpStatusCode.valueOf(statusCode));
+    }
 
-    /**} catch (MalformedURLException e) {
-        return new  ResponseEntity<>(e.toString(),HttpStatusCode.valueOf(500));
-    } catch (IOException e) {
-            return new  ResponseEntity<>(e.toString(),HttpStatusCode.valueOf(500));
-    }catch (Exception e){
-            return new  ResponseEntity<>(e.toString(),HttpStatusCode.valueOf(statusCode));
-        }*/
+    private ResponseEntity<Object> checkCustomerInCustomerAPI(String json_string) throws Exception {
+        //try{
+        URL url = new URL("http://localhost:8080/api/customers/byemail");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setDoOutput(true);
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+        Token token = TokenAPI.getAppUserToken();
+        conn.setRequestProperty("authorization", "Bearer " + token.getToken());
+
+        OutputStream os = conn.getOutputStream();
+        os.write(json_string.getBytes());
+        os.flush();
+
+        String msg = conn.getResponseMessage();
+        int statusCode = conn.getResponseCode();
+
+        if (statusCode != 200) {
+            return new ResponseEntity<>("customer does not exist", HttpStatusCode.valueOf(statusCode));
+        }
+        BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+        String output = "";
+        String out = "";
+        while ((out = br.readLine()) != null) {
+            output += out;
+        }
+        conn.disconnect();
+        System.out.println(output);
+        JSONObject jo = new JSONObject(output);
+        System.out.println(jo.get("password"));
+        JSONObject formData = new JSONObject(json_string);
+        System.out.println(formData.get("password"));
+        if (jo.get("password").equals(formData.get("password"))) {
+            return new ResponseEntity<>(token, HttpStatusCode.valueOf(200));
+        } else {
+            return new ResponseEntity<>("Forbidden access, incorrect password", HttpStatusCode.valueOf(403));
+        }
     }
 
 }
