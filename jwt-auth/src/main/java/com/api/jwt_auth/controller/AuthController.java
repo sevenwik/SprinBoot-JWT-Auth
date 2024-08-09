@@ -33,7 +33,7 @@ public class AuthController {
 
         ResponseEntity<Object> output = null;
         try {
-            output = checkCustomerCreds(out);
+            output = checkCustomerCreds(out, cust.getName());
             return output;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -79,7 +79,7 @@ public class AuthController {
         conn.setDoOutput(true);
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json");
-        Token token = TokenAPI.getAppUserToken();
+        Token token = TokenAPI.getAppUserToken("admin");
         conn.setRequestProperty("authorization", "Bearer " + token.getToken());
 
         OutputStream os = conn.getOutputStream();
@@ -96,14 +96,14 @@ public class AuthController {
         return new ResponseEntity<>(HttpStatusCode.valueOf(statusCode));
     }
 
-    private ResponseEntity<Object> checkCustomerCreds(String json_string) throws Exception {
+    private ResponseEntity<Object> checkCustomerCreds(String json_string, String userName) throws Exception {
         //try{
         URL url = new URL("http://localhost:8080/api/customers/byEmail");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setDoOutput(true);
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json");
-        Token token = TokenAPI.getAppUserToken();
+        Token token = TokenAPI.getAppUserToken(userName);
         conn.setRequestProperty("authorization", "Bearer " + token.getToken());
 
         OutputStream os = conn.getOutputStream();

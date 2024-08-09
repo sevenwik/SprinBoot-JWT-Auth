@@ -11,16 +11,16 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 public class JWTHelper {
-    public static String createToken(String scopes) {
+    public static String createToken(String userName) {
 
         try {
             Algorithm algorithm = Algorithm.HMAC256("secret");
             long fiveHoursInMillis = 1000 * 60 * 60 * 5;
             Date expireDate = new Date(System.currentTimeMillis() + fiveHoursInMillis);
             String token = JWT.create()
-                    .withSubject("apiuser")
+                    .withSubject(userName)
                     .withIssuer("me@me.com")
-                    .withClaim("scopes", scopes)
+                    .withClaim("scopes", "com.webage.auth.apis")
                     .withExpiresAt(expireDate)
                     .sign(algorithm);
             return token;
