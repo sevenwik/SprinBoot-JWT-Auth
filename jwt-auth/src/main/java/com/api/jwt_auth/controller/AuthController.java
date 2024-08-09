@@ -33,7 +33,7 @@ public class AuthController {
 
         ResponseEntity<Object> output = null;
         try {
-            output = checkCustomerInCustomerAPI(out);
+            output = checkCustomerCreds(out);
             return output;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -57,20 +57,22 @@ public class AuthController {
 
         ResponseEntity<Object> output = null;
         try {
-            output = postNewCustomerToCustomerAPI(out);
+            output = postCustomerDetailsRequest(out);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
        if(output.getStatusCode().value() == 200){
-           return new ResponseEntity<>("User created and you can Sign in",HttpStatusCode.valueOf(200));
+           return new ResponseEntity<>("User created and you can sign-in",HttpStatusCode.valueOf(200));
 
        }
-           return new  ResponseEntity<>("",HttpStatusCode.valueOf(output.getStatusCode().value()));
-
+       if(output.getStatusCode().value() == 409) {
+           return new ResponseEntity<>("User already exists", HttpStatusCode.valueOf(output.getStatusCode().value()));
+       }
+        return new ResponseEntity<>("Something went wrong", HttpStatusCode.valueOf(output.getStatusCode().value()));
 
     }
 
-    private ResponseEntity<Object> postNewCustomerToCustomerAPI(String json_string) throws Exception {
+    private ResponseEntity<Object> postCustomerDetailsRequest(String json_string) throws Exception {
         //try{
         URL url = new URL("http://localhost:8080/api/customers");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -94,9 +96,9 @@ public class AuthController {
         return new ResponseEntity<>(HttpStatusCode.valueOf(statusCode));
     }
 
-    private ResponseEntity<Object> checkCustomerInCustomerAPI(String json_string) throws Exception {
+    private ResponseEntity<Object> checkCustomerCreds(String json_string) throws Exception {
         //try{
-        URL url = new URL("http://localhost:8080/api/customers/byemail");
+        URL url = new URL("http://localhost:8080/api/customers/byEmail");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setDoOutput(true);
         conn.setRequestMethod("POST");
@@ -121,11 +123,8 @@ public class AuthController {
             output += out;
         }
         conn.disconnect();
-        System.out.println(output);
         JSONObject jo = new JSONObject(output);
-        System.out.println(jo.get("password"));
         JSONObject formData = new JSONObject(json_string);
-        System.out.println(formData.get("password"));
         if (jo.get("password").equals(formData.get("password"))) {
             return new ResponseEntity<>(token, HttpStatusCode.valueOf(200));
         } else {
